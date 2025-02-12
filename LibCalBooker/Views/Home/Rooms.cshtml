@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Temporary Rooms Testing Page";
+    var rooms = (Newtonsoft.Json.Linq.JArray)Model;
+}
+
+<div class="text-center">
+    <h1 class="display-4">Rooms Testing</h1>
+    <p>This page tests the backend functionality of fetching Rooms!</p>
+</div>
+
+<div class="container">
+    <div class="row">
+        @foreach (var room in rooms)
+        {
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Title</h5>
+                        <p class="card-text">Rooms ID: @room["itemId"]</p>
+                        <p class="card-text">Start Date: @room["start"]</p>
+                        <p class="card-text">End Date: @room["end"]</p>
+                        <p class="card-text">Checksum: @room["checksum"]</p>
+                        <p class="card-text">className: @room["className"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
