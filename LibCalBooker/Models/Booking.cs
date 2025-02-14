@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LibCalBooker.Models
 {
@@ -16,7 +17,8 @@ namespace LibCalBooker.Models
 		[DataType(DataType.Time)]
 		public DateTime BookingTime { get; set; }
 
+		[ForeignKey("RoomID")]
 		public int RoomID { get; set; }
-		public Room Room { get; set; } = null!;
+		public virtual Room? Room { get; set; }
 	}
 }

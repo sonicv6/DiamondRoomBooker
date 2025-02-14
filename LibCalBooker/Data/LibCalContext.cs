@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using LibCalBooker.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 namespace LibCalBooker.Data
 {
-	public class LibCalContext : DbContext
+	public class LibCalContext : IdentityDbContext<IdentityUser>
 	{
 		public LibCalContext(DbContextOptions<LibCalContext> options) : base(options)
 		{
@@ -10,5 +12,6 @@ namespace LibCalBooker.Data
 
 		public DbSet<Booking> Bookings { get; set; }
 		public DbSet<Room> Rooms { get; set; }
+
 	}
 }

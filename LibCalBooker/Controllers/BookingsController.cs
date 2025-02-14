@@ -76,6 +76,8 @@ namespace LibCalBooker.Controllers
             {
                 _context.Add(booking);
                 await _context.SaveChangesAsync();
+                var test = _context.Bookings.Find(1);
+                var test2 = test.Room.Name;
                 return RedirectToAction(nameof(Index));
             }
             else
