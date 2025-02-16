@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.Storage.SQLite;
 using LibCalBooker.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<LibCalContext>(options => options.UseLazyLoadingProxies().UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<LibCalContext>();
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+	.AddEntityFrameworkStores<LibCalContext>().AddRoles<IdentityRole>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
+builder.Services.AddHangfire(configuration => configuration.UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSQLiteStorage());
+GlobalConfiguration.Configuration.UseSQLiteStorage((builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddHangfireServer();
 builder.Services.Configure<IdentityOptions>(options =>
 {
 	// Password settings.
@@ -34,6 +39,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 	//SignIn settings
 	options.SignIn.RequireConfirmedEmail = false;
+	options.SignIn.RequireConfirmedAccount = false;
 });
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -50,6 +56,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 
 var app = builder.Build();
+app.UseHangfireDashboard();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<LibCalContext>();
@@ -63,7 +70,6 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
 app.UseHttpsRedirection();
 app.UseRouting();
 

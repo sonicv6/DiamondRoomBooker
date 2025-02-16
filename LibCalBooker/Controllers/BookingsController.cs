@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LibCalBooker.Data;
 using LibCalBooker.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibCalBooker.Controllers
 {
@@ -20,6 +21,7 @@ namespace LibCalBooker.Controllers
         }
 
         // GET: Bookings
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             var libCalContext = _context.Bookings.Include(b => b.Room);
@@ -27,6 +29,7 @@ namespace LibCalBooker.Controllers
         }
 
         // GET: Bookings/Details/5
+        [Authorize]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -46,6 +49,7 @@ namespace LibCalBooker.Controllers
         }
 
         // GET: Bookings/Create
+        [Authorize]
         public IActionResult Create()
         {
             TimeSpan start = new TimeSpan(7, 0, 0);
@@ -66,6 +70,7 @@ namespace LibCalBooker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,RegistrationNumber,UCardNumber,BookerEmail,SecondaryEmail,BookingDate,BookingTime,RoomID")] Booking booking)
         {
    //         if (_context.Bookings.Where(b => booking.RoomId == b.RoomId && (booking.BookingTime - b.BookingTime).Hours < 4).Any())
@@ -98,6 +103,7 @@ namespace LibCalBooker.Controllers
         }
 
         // GET: Bookings/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -119,6 +125,7 @@ namespace LibCalBooker.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("Id,FirstName,LastName,RegistrationNumber,UCardNumber,BookerEmail,SecondaryEmail,BookingTime,RoomId")] Booking booking)
         {
             if (id != booking.Id)
@@ -151,6 +158,7 @@ namespace LibCalBooker.Controllers
         }
 
         // GET: Bookings/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -172,6 +180,7 @@ namespace LibCalBooker.Controllers
         // POST: Bookings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var booking = await _context.Bookings.FindAsync(id);
