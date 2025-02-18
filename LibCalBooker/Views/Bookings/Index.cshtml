@@ -13,24 +13,6 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.FirstName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LastName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RegistrationNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UCardNumber)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BookerEmail)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SecondaryEmail)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.BookingTime)
             </th>
             <th>
@@ -42,24 +24,6 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.FirstName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RegistrationNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UCardNumber)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BookerEmail)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SecondaryEmail)
-            </td>
             <td>
                 @Html.DisplayFor(modelItem => item.BookingTime)
             </td>

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using LibCalBooker.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,8 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<LibCalContext>(options => options.UseLazyLoadingProxies().UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-	.AddEntityFrameworkStores<LibCalContext>().AddRoles<IdentityRole>();
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddRoles<IdentityRole>()
+	.AddEntityFrameworkStores<LibCalContext>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddHangfire(configuration => configuration.UseSimpleAssemblyNameTypeSerializer().UseRecommendedSerializerSettings().UseSQLiteStorage());
 GlobalConfiguration.Configuration.UseSQLiteStorage((builder.Configuration.GetConnectionString("DefaultConnection")));

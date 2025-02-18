@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,16 +9,20 @@ using Microsoft.EntityFrameworkCore;
 using LibCalBooker.Data;
 using LibCalBooker.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace LibCalBooker.Controllers
 {
     public class BookingsController : Controller
     {
         private readonly LibCalContext _context;
+        
+        private UserManager<ApplicationUser> _userManager;
 
-        public BookingsController(LibCalContext context)
+        public BookingsController(LibCalContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Bookings
@@ -71,14 +76,16 @@ namespace LibCalBooker.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,RegistrationNumber,UCardNumber,BookerEmail,SecondaryEmail,BookingDate,BookingTime,RoomID")] Booking booking)
+        public async Task<IActionResult> Create([Bind("Id,BookingDate,BookingTime,RoomID")] Booking booking)
         {
    //         if (_context.Bookings.Where(b => booking.RoomId == b.RoomId && (booking.BookingTime - b.BookingTime).Hours < 4).Any())
 			//{
    //             ModelState.AddModelError("BookingTime", "Room is already booked from: " + booking.BookingTime.ToString());
 			//}
+            
 			if (ModelState.IsValid)
             {
+                booking.BookerID = _userManager.GetUserAsync(User).Id;
                 _context.Add(booking);
                 await _context.SaveChangesAsync();
                 var test = _context.Bookings.Find(1);

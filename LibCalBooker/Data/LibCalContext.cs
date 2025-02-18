@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 namespace LibCalBooker.Data
 {
-	public class LibCalContext : IdentityDbContext<IdentityUser>
+	public class LibCalContext : IdentityDbContext<ApplicationUser>
 	{
 		public LibCalContext(DbContextOptions<LibCalContext> options) : base(options)
 		{
