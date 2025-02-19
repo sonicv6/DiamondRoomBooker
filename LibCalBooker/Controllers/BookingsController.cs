@@ -10,6 +10,7 @@ using LibCalBooker.Data;
 using LibCalBooker.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using LibCalBooker.LibCal;
 
 namespace LibCalBooker.Controllers
 {
@@ -19,14 +20,36 @@ namespace LibCalBooker.Controllers
         
         private UserManager<ApplicationUser> _userManager;
 
+        private LibCalSession LibCalSession;
+
         public BookingsController(LibCalContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            LibCalSession = new LibCalSession("Balls");
         }
 
-        // GET: Bookings
+        // GET: Rooms
         [Authorize]
+		public async Task<IActionResult> Rooms()
+		{
+			List<TimeSlot> times = await LibCalSession.GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(1));
+			for (int i = 0; i < times.Count; i++)
+			{
+				var room = _context.Rooms.Find(times[i].roomId);
+				if (room != null)
+				{
+					var timeSlot = times[i];
+					timeSlot.diamondName = room.Name;
+					times[i] = timeSlot;
+				}
+			}
+            ViewData["Times"] = times;
+			return View();
+		}
+
+		// GET: Bookings
+		[Authorize]
         public async Task<IActionResult> Index()
         {
             var libCalContext = _context.Bookings.Include(b => b.Room);
