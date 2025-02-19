@@ -18,11 +18,22 @@
                             <p class="card-text">Start Date: @time.startTime</p>
                             <p class="card-text">End Date: @time.endTime</p>
                             <p class="card-text">Checksum: @time.checksum</p>
-                            <p class="card-text">className: @time.roomName</p>
+                            <p class="card-text">className: @time.className</p>
                             <partial class="card-text">diamondName: @time.diamondName</partial>
+                            <form asp-action="BookRoom" method="post">
+                                <input type="hidden" name="roomId" value="@time.roomId" />
+                                <input type="hidden" name="startTime" value="@time.startTime" />
+                                <input type="hidden" name="endTime" value="@time.endTime" />
+                                <input type="hidden" name="checksum" value="@time.checksum" />
+                                <input type="hidden" name="className" value="@time.className" />
+                                <input type="hidden" name="diamondName" value="@time.diamondName" />
+                                <button type="submit" class="btn btn-primary">Book Room</button>
+                            </form>
+
                         </div>
                     </div>
                 </div>
         }
     </div>
+
 </div>

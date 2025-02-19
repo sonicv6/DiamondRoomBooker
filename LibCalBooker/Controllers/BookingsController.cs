@@ -48,6 +48,14 @@ namespace LibCalBooker.Controllers
 			return View();
 		}
 
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> BookRoom(TimeSlot timeSlot)
+        {
+            var result = await LibCalSession.BookRoom(timeSlot);
+            return RedirectToAction(nameof(Index));
+        }
+
 		// GET: Bookings
 		[Authorize]
         public async Task<IActionResult> Index()
