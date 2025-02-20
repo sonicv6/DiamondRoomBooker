@@ -52,7 +52,8 @@ namespace LibCalBooker.Controllers
         [Authorize]
         public async Task<IActionResult> BookRoom(TimeSlot timeSlot)
         {
-            var result = await LibCalSession.BookRoom(timeSlot);
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            var result = await LibCalSession.BookRoom(timeSlot, user);
             return RedirectToAction(nameof(Index));
         }
 

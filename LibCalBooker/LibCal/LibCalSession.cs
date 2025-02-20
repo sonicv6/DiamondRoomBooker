@@ -74,114 +74,128 @@ namespace LibCalBooker.LibCal
 		// Booking a Room. 
 		// TODO : implement the final booking request by integrating the user information.
 		// Refactor.
-		public async Task<bool> BookRoom(TimeSlot timeSlot, ApplicationUser user = null)
-		{
+		public async Task<bool> BookRoom(TimeSlot timeSlot, ApplicationUser user)
+        {
+            // First Post
+            using HttpClient client = new();
+            (HttpResponseMessage response, string responseBody) = await SelectRoom(timeSlot, client);
 
-			using HttpClient client = new();
-			
-			// First POST
-			var formData = new Dictionary<string, string>
-			{
-				{ "add[eid]", timeSlot.roomId.ToString() },
-				{ "add[gid]", "5160" },
-				{ "add[lid]", "2579" },
-				{ "add[start]", timeSlot.startTime.ToString("yyyy-MM-dd HH:mm:ss") },
-				{ "add[checksum]", timeSlot.checksum },
-				{ "lid", "2579" },
-				{ "gid", "0" },
-				{ "start", timeSlot.startTime.ToString("yyyy-MM-dd") },
-				{ "end", timeSlot.endTime.ToString("yyyy-MM-dd") }
-			};
+            if (response.IsSuccessStatusCode)
+            {
+                if (response.Content.Headers.ContentType != null)
+                {
+                    if (response.Content.Headers.ContentType.MediaType == "application/json")
+                    {
+                        var jsonResponse = JObject.Parse(responseBody);
+                        var bookings = jsonResponse["bookings"] as JArray;
 
-			var content = new FormUrlEncodedContent(formData);
-			client.DefaultRequestHeaders.Add("Host", "sheffield.libcal.com");
-			client.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
-			client.DefaultRequestHeaders.Add("Sec-Ch-Ua", "\"Not-A.Brand\";v=\"8\", \"Chromium\";v=\"132\"");
-			client.DefaultRequestHeaders.Add("Accept", "application/json, text/javascript, */*; q=0.01");
-			client.DefaultRequestHeaders.Add("Sec-Ch-Ua-Mobile", "?0");
-			client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.6367.118 Safari/537.36");
-			client.DefaultRequestHeaders.Add("Sec-Ch-Ua-Platform", "Windows");
-			client.DefaultRequestHeaders.Add("Origin", "https://sheffield.libcal.com");
-			client.DefaultRequestHeaders.Add("Sec-Fetch-Site", "same-origin");
-			client.DefaultRequestHeaders.Add("Sec-Fetch-Mode", "cors");
-			client.DefaultRequestHeaders.Add("Sec-Fetch-Dest", "empty");
-			client.DefaultRequestHeaders.Add("Referer", "https://sheffield.libcal.com/r/new/availability?lid=2579&zone=0&gid=5160&capacity=2");
-			client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
-			client.DefaultRequestHeaders.Add("Accept-Language", "en-GB,en-US;q=0.9,en;q=0.8");
-			client.DefaultRequestHeaders.Add("Priority", "u=1, i");
-			var request = new SelectedTimeSlotRequest(timeSlot.roomId, timeSlot.startTime, timeSlot.endTime, timeSlot.checksum).GetHttpRequest();
-			Console.WriteLine($"Request: {request.Content}");
-			HttpResponseMessage response = await client.SendAsync(request);
-			string responseBody = await ProcessResponse(response);
+						var bookingData = bookings[0];
+						var bookingDataParse = bookingData.DeepClone();
 
-			if (response.IsSuccessStatusCode)
-			{
-				if (response.Content.Headers.ContentType != null)
-				{
-					if (response.Content.Headers.ContentType.MediaType == "application/json")
-					{
-						var jsonResponse = JObject.Parse(responseBody);
-						var bookings = jsonResponse["bookings"] as JArray;
+						// Remove unnecessary properties
+						bookingDataParse["options"]?.Parent.Remove();
+						bookingDataParse["optionSelected"]?.Parent.Remove();
+						bookingDataParse["optionChecksums"]?.Parent.Remove();
+						bookingDataParse["cost"]?.Parent.Remove();
 
-						// Procceeding with a booking.
-						if (bookings != null && bookings.Count > 0)
-						{
-							var bookingData = bookings[0];
-							
-							// Send To "Checkout/Baseket"
-							var bookingRequest = new ToCheckoutRequest(int.Parse(bookingData["id"].ToString()), int.Parse(bookingData["eid"].ToString()), int.Parse(bookingData["seat_id"].ToString()), int.Parse(bookingData["gid"].ToString()), int.Parse(bookingData["lid"].ToString()), DateTime.Parse(bookingData["start"].ToString()), DateTime.Parse(bookingData["end"].ToString()), bookingData["checksum"].ToString()).GetHttpRequest();
-							response = await client.SendAsync(request);
-							responseBody = await ProcessResponse(response);
+						string bookingDataString = bookingDataParse.ToString();
 
+                        // Procceeding with a booking.
+                        if (bookings != null && bookings.Count > 0)
+                        {
+                            (response, responseBody) = await GoToBasketRequest(client, response, responseBody, bookings);
 
-							if (response.IsSuccessStatusCode)
-							{
-								var sessionId = GetSessionId(responseBody);
-								
-								if (sessionId != -1)
-								{
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var sessionId = GetSessionId(responseBody);
 
-									Console.WriteLine($"Successfully Found Session ID: {sessionId}.");
-										
+                                if (sessionId != -1)
+                                {
 
-									throw new NotImplementedException();
-									
-									// Final Post Request to Checkout and finialise the booking process.
-									
+                                    Console.WriteLine($"Successfully Found Session ID: {sessionId}.");
 
-								} else { return false; }
+                                    // Final Post Request to Checkout and finialise the booking process.
 
-							} else 
-							{
-								Console.WriteLine("Second booking request failed.");
-								return false;
-							}
+									var bookRoomRequest = new BookRoomRequest(sessionId, bookingDataParse, user).GetHttpRequest();
+									response = await client.SendAsync(bookRoomRequest);
+									responseBody = await ProcessResponse(response);
 
-						} 
-						else 
-						{
-							Console.WriteLine("No bookings found.");
-							return false;
-						}
+									if (response.IsSuccessStatusCode)
+									{
+										Console.WriteLine("Booking request successful.");
+										return true;
+									} else {
+										Console.WriteLine("Second booking request failed.");
+										return false;
+									}
+                                }
+                                else { return false; }
 
-					}
-					return false;
+                            }
+                            else
+                            {
+                                Console.WriteLine("Second booking request failed.");
+                                return false;
+                            }
 
-				}
-				
-				return false;
+                        }
+                        else
+                        {
+                            Console.WriteLine("No bookings found.");
+                            return false;
+                        }
 
-			}
-			else
-			{
-				Console.WriteLine($"Error: {response.StatusCode}");
-				return false;
-			}
+                    }
+                    return false;
 
-		}
+                }
 
+                return false;
 
-		private static int GetSessionId(string htmlString)
+            }
+            else
+            {
+                Console.WriteLine($"Error: {response.StatusCode}");
+                return false;
+            }
+
+        }
+
+		// Helper function to go to the "checkout/basket" stage.
+        private static async Task<(HttpResponseMessage response, string responseBody)> GoToBasketRequest(HttpClient client, HttpResponseMessage response, string responseBody, JArray bookings)
+        {
+            var bookingData = bookings[0];
+
+            // Send To "Checkout/Baseket"
+            var bookingRequest = new ToCheckoutRequest(
+                int.Parse(bookingData["id"].ToString()),
+                int.Parse(bookingData["eid"].ToString()),
+                int.Parse(bookingData["seat_id"].ToString()),
+                int.Parse(bookingData["gid"].ToString()),
+                int.Parse(bookingData["lid"].ToString()),
+                DateTime.Parse(bookingData["start"].ToString()),
+                DateTime.Parse(bookingData["end"].ToString()),
+                bookingData["checksum"].ToString()
+            ).GetHttpRequest();
+
+            response = await client.SendAsync(bookingRequest);
+            responseBody = await ProcessResponse(response);
+            return (response, responseBody);
+        }
+
+		// Helper Function For Selecting a Room Request.
+        private static async Task<(HttpResponseMessage response, string responseBody)> SelectRoom(TimeSlot timeSlot, HttpClient client)
+        {
+            var request = new SelectedTimeSlotRequest(timeSlot.roomId, timeSlot.startTime, timeSlot.endTime, timeSlot.checksum).GetHttpRequest();
+            Console.WriteLine($"Request: {request.Content}");
+            HttpResponseMessage response = await client.SendAsync(request);
+            string responseBody = await ProcessResponse(response);
+
+            return (response, responseBody);
+
+        }
+
+        private static int GetSessionId(string htmlString)
 		{
 			Console.WriteLine("Getting session ID...");
 			//Console.WriteLine(htmlString);

@@ -1,11 +1,13 @@
+using LibCalBooker.Models;
+using Newtonsoft.Json.Linq;
+
 namespace LibCalBooker.LibCal.Requests
 {
     public struct BookRoomRequest
     {
         private Dictionary<string, string> parameters = new Dictionary<string, string>
 		{
-			{ "patron", "" },
-			{ "patronHash", "" },
+
 
 		};
         private Dictionary<string, string> headers = new Dictionary<string, string>
@@ -27,31 +29,46 @@ namespace LibCalBooker.LibCal.Requests
             { "Priority", "u=1, i" }
         };
 
-        public BookRoomRequest()
+        public BookRoomRequest(int sessionId, JToken bookingData, ApplicationUser user)
         {
 
+            this.parameters["\"session\""] = sessionId.ToString();
+            this.parameters["\"fname\""] = user.FirstName;
+            this.parameters["\"lname\""] = user.LastName;
+            this.parameters["\"email\""] = user.Email;
+            this.parameters["\"q1460\""] = user.SecondaryEmail;
+            this.parameters["\"q1282\""] = user.RegistrationNumber.ToString();
+            this.parameters["\"q1281\""] = user.UCardNumber.ToString();
+            this.parameters["\"bookings\""] = $"[{bookingData.ToString()}]";;
+            this.parameters["\"returnUrl\""] = $"/r/new?lid=2579&gid=5160&zone=0&capacity=2&date={bookingData["start"]}&start=&end=";
+            this.parameters["\"pickupHolds\""] = "";
+            this.parameters["\"method\""] = "11";
 
         }
 
-        public HttpRequestMessage GetHttpRequest()
-		{
-			var content = new FormUrlEncodedContent(parameters);
-			content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded")
-			{
-				CharSet = "UTF-8"
-			};
-			var request = new HttpRequestMessage(HttpMethod.Post, "https://sheffield.libcal.com/spaces/availability/booking/add")
-			{
-				Content = content
-			};
+    public HttpRequestMessage GetHttpRequest()
+    {
+        var content = new MultipartFormDataContent("----WebKitFormBoundaryJ7qgnb2wKJ7ZHGAA");
 
-			foreach (var header in headers)
-			{
-				request.Headers.Add(header.Key, header.Value);
-			}
+        foreach (var parameter in parameters)
+        {
+            var stringContent = new StringContent(parameter.Value);
+            stringContent.Headers.Remove("Content-Type");
+            content.Add(stringContent, parameter.Key);
+        }
 
-			return request;
-		}
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://sheffield.libcal.com/ajax/space/book")
+        {
+            Content = content
+        };
+
+        foreach (var header in headers)
+        {
+            request.Headers.Add(header.Key, header.Value);
+        }
+
+        return request;
+        }
 
 
 

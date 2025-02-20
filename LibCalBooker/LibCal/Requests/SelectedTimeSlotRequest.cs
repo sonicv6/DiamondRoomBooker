@@ -44,7 +44,7 @@ namespace LibCalBooker.LibCal.Requests
             this.parameters["add[eid]"] = eid.ToString();
             this.parameters["add[gid]"] = "5160";
             this.parameters["add[lid]"] = "2579";
-            this.parameters["add[start"] = start.ToString("yyyy-MM-dd HH:mm:ss");
+            this.parameters["add[start]"] = start.ToString("yyyy-MM-dd HH:mm:ss");
             this.parameters["add[checksum]"] = checksum;
             this.parameters["lid"] = "2579";
             this.parameters["gid"] = "0";
@@ -66,10 +66,10 @@ namespace LibCalBooker.LibCal.Requests
 			var request = new HttpRequestMessage(HttpMethod.Post, "https://sheffield.libcal.com/spaces/availability/booking/add");
             request.Content = content;
 
-			// foreach (var header in headers)
-			// {
-			// 	request.Headers.Add(header.Key, header.Value);
-			// }
+			foreach (var header in headers)
+			{
+				request.Headers.Add(header.Key, header.Value);
+			}
 
 			return request;
 		}
