@@ -116,7 +116,7 @@ namespace LibCalBooker.Controllers
             
 			if (ModelState.IsValid)
             {
-                booking.BookerID = _userManager.GetUserAsync(User).Id;
+                booking.BookerID = (await _userManager.GetUserAsync(User)).Id;
                 _context.Add(booking);
                 await _context.SaveChangesAsync();
                 var test = _context.Bookings.Find(1);

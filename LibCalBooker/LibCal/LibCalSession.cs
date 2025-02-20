@@ -70,13 +70,16 @@ namespace LibCalBooker.LibCal
 
 		}
 
+
 		// Booking a Room. 
 		// TODO : implement the final booking request by integrating the user information.
 		// Refactor.
-		public async Task<bool> BookRoom(TimeSlot timeSlot)
+		public async Task<bool> BookRoom(TimeSlot timeSlot, ApplicationUser user = null)
 		{
-			using HttpClient client = new();
 
+			using HttpClient client = new();
+			
+			// First POST
 			var formData = new Dictionary<string, string>
 			{
 				{ "add[eid]", timeSlot.roomId.ToString() },
@@ -106,13 +109,13 @@ namespace LibCalBooker.LibCal
 			client.DefaultRequestHeaders.Add("Accept-Encoding", "gzip, deflate, br");
 			client.DefaultRequestHeaders.Add("Accept-Language", "en-GB,en-US;q=0.9,en;q=0.8");
 			client.DefaultRequestHeaders.Add("Priority", "u=1, i");
-
-    		HttpResponseMessage response = await client.PostAsync("https://sheffield.libcal.com/spaces/availability/booking/add", content);
-		
+			var request = new SelectedTimeSlotRequest(timeSlot.roomId, timeSlot.startTime, timeSlot.endTime, timeSlot.checksum).GetHttpRequest();
+			Console.WriteLine($"Request: {request.Content}");
+			HttpResponseMessage response = await client.SendAsync(request);
+			string responseBody = await ProcessResponse(response);
 
 			if (response.IsSuccessStatusCode)
 			{
-				string responseBody = await ProcessResponse(response);
 				if (response.Content.Headers.ContentType != null)
 				{
 					if (response.Content.Headers.ContentType.MediaType == "application/json")
@@ -124,33 +127,22 @@ namespace LibCalBooker.LibCal
 						if (bookings != null && bookings.Count > 0)
 						{
 							var bookingData = bookings[0];
-							var bookingSelection = new Dictionary<string, string>
+							
+							// Send To "Checkout/Baseket"
+							var bookingRequest = new ToCheckoutRequest(int.Parse(bookingData["id"].ToString()), int.Parse(bookingData["eid"].ToString()), int.Parse(bookingData["seat_id"].ToString()), int.Parse(bookingData["gid"].ToString()), int.Parse(bookingData["lid"].ToString()), DateTime.Parse(bookingData["start"].ToString()), DateTime.Parse(bookingData["end"].ToString()), bookingData["checksum"].ToString()).GetHttpRequest();
+							response = await client.SendAsync(request);
+							responseBody = await ProcessResponse(response);
+
+
+							if (response.IsSuccessStatusCode)
 							{
-								{ "patron", "" },
-								{ "patronHash", "" },
-								{ "bookings[0][id]", bookingData["id"].ToString() },
-								{ "bookings[0][eid]", bookingData["eid"].ToString() },
-								{ "bookings[0][seat_id]", bookingData["seat_id"].ToString() },
-								{ "bookings[0][gid]", bookingData["gid"].ToString() },
-								{ "bookings[0][lid]", bookingData["lid"].ToString() },
-								{ "bookings[0][start]", bookingData["start"].ToString() },
-								{ "bookings[0][end]", bookingData["end"].ToString() },
-								{ "bookings[0][checksum]", bookingData["checksum"].ToString() }
-							};
-
-							var bookingSelectionContent = new FormUrlEncodedContent(bookingSelection);
-
-							HttpResponseMessage bookingSelectionRequest = await client.PostAsync("https://sheffield.libcal.com/ajax/space/times", bookingSelectionContent);
-
-							if (bookingSelectionRequest.IsSuccessStatusCode)
-							{
-								string responseBookingsSelectionBody = await ProcessResponse(bookingSelectionRequest);
-								var sessionId = GetSessionId(responseBookingsSelectionBody);
+								var sessionId = GetSessionId(responseBody);
 								
 								if (sessionId != -1)
 								{
 
 									Console.WriteLine($"Successfully Found Session ID: {sessionId}.");
+										
 
 									throw new NotImplementedException();
 									

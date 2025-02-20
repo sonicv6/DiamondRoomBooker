@@ -17,7 +17,7 @@ namespace LibCalBooker.Models
 		public virtual Room? Room { get; set; }
 		
 		[ForeignKey("BookerID")]
-		public int BookerID { get; set; }
+		public string BookerID { get; set; }
 		public virtual ApplicationUser? Booker { get; set; }
 	}
 }

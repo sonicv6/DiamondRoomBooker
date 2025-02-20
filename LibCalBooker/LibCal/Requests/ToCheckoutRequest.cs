@@ -1,7 +1,17 @@
 namespace LibCalBooker.LibCal.Requests
 {
-    public struct BookRoomRequest
+    public struct ToCheckoutRequest
     {
+        private int _id;
+        private int _eid;
+        private int _seat_id;
+        private int _gid;
+        private int _lid;
+        private DateTime _start;
+        private DateTime _end;
+        private string _checksum;
+
+
         private Dictionary<string, string> parameters = new Dictionary<string, string>
 		{
 			{ "patron", "" },
@@ -27,12 +37,27 @@ namespace LibCalBooker.LibCal.Requests
             { "Priority", "u=1, i" }
         };
 
-        public BookRoomRequest()
+        public ToCheckoutRequest(int id, int eid, int seat_id, int gid, int lid, DateTime start, DateTime end, string checksum)
         {
+            this._id = id;
+            this._eid = eid;
+            this._seat_id = seat_id;
+            this._gid = gid;
+            this._lid = lid;
+            this._start = start;
+            this._end = end;
+            this._checksum = checksum;
 
+            this.parameters["bookings[0][id]"] = id.ToString();
+            this.parameters["bookings[0][eid]"] = eid.ToString();
+            this.parameters["bookings[0][seat_id]"] = seat_id.ToString();
+            this.parameters["bookings[0][gid]"] = gid.ToString();
+            this.parameters["bookings[0][lid]"] = lid.ToString();
+            this.parameters["bookings[0][start]"] = start.ToString();
+            this.parameters["bookings[0][end]"] = end.ToString();
+            this.parameters["bookings[0][checksum]"] = checksum;
 
         }
-
         public HttpRequestMessage GetHttpRequest()
 		{
 			var content = new FormUrlEncodedContent(parameters);
@@ -40,7 +65,7 @@ namespace LibCalBooker.LibCal.Requests
 			{
 				CharSet = "UTF-8"
 			};
-			var request = new HttpRequestMessage(HttpMethod.Post, "https://sheffield.libcal.com/spaces/availability/booking/add")
+			var request = new HttpRequestMessage(HttpMethod.Post, "https://sheffield.libcal.com/ajax/space/times")
 			{
 				Content = content
 			};
@@ -53,9 +78,15 @@ namespace LibCalBooker.LibCal.Requests
 			return request;
 		}
 
+        
+                
+
+
 
 
     }
+ 
 
-    
+
+
 }
