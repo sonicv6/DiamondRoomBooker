@@ -20,40 +20,42 @@ namespace LibCalBooker.Controllers
         
         private UserManager<ApplicationUser> _userManager;
 
-        private LibCalSession LibCalSession;
 
         public BookingsController(LibCalContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
-            LibCalSession = new LibCalSession("Balls");
+        }
+
+        private void CreateScheduledBookings()
+        {
+
         }
 
         // GET: Rooms
         [Authorize]
-		public async Task<IActionResult> Rooms()
-		{
-			List<TimeSlot> times = await LibCalSession.GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(1));
-			for (int i = 0; i < times.Count; i++)
-			{
-				var room = _context.Rooms.Find(times[i].roomId);
-				if (room != null)
-				{
-					var timeSlot = times[i];
-					timeSlot.diamondName = room.Name;
-					times[i] = timeSlot;
-				}
-			}
-            ViewData["Times"] = times;
-			return View();
-		}
+		//public async Task<IActionResult> Rooms()
+		//{
+  //          List<TimeSlot> times = await LibCalSession.GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(1));
+  //          for (int i = 0; i < times.Count; i++)
+  //          {
+  //              var room = _context.Rooms.Find(times[i].roomId);
+  //              if (room != null)
+  //              {
+  //                  var timeSlot = times[i];
+  //                  timeSlot.diamondName = room.Name;
+  //                  times[i] = timeSlot;
+  //              }
+  //          }
+  //          ViewData["Times"] = times;
+  //          return View();
+  //      }
 
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> BookRoom(TimeSlot timeSlot)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            var result = await LibCalSession.BookRoom(timeSlot, user);
             return RedirectToAction(nameof(Index));
         }
 
@@ -110,18 +112,15 @@ namespace LibCalBooker.Controllers
         [Authorize]
         public async Task<IActionResult> Create([Bind("Id,BookingDate,BookingTime,RoomID")] Booking booking)
         {
-   //         if (_context.Bookings.Where(b => booking.RoomId == b.RoomId && (booking.BookingTime - b.BookingTime).Hours < 4).Any())
+			//         if (_context.Bookings.Where(b => booking.RoomId == b.RoomId && (booking.BookingTime - b.BookingTime).Hours < 4).Any())
 			//{
-   //             ModelState.AddModelError("BookingTime", "Room is already booked from: " + booking.BookingTime.ToString());
+			//             ModelState.AddModelError("BookingTime", "Room is already booked from: " + booking.BookingTime.ToString());
 			//}
-            
-			if (ModelState.IsValid)
+			booking.BookerID = (await _userManager.GetUserAsync(User)).Id;
+			if (ModelState.IsValid || ModelState.ErrorCount == 1)
             {
-                booking.BookerID = (await _userManager.GetUserAsync(User)).Id;
                 _context.Add(booking);
                 await _context.SaveChangesAsync();
-                var test = _context.Bookings.Find(1);
-                var test2 = test.Room.Name;
                 return RedirectToAction(nameof(Index));
             }
             else

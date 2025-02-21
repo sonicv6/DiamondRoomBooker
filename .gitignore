@@ -398,3 +398,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/LibCalBooker/Hangfire.db
+/LibCalBooker/Hangfire.db-shm
+/LibCalBooker/Hangfire.db-wal
+/LibCalBooker/LibCalBooker.db
+/LibCalBooker/LibCalBooker.db-shm
+/LibCalBooker/LibCalBooker.db-wal

@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using LibCalBooker.Models;
+using LibCalBooker.LibCal;
+using LibCalBooker;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,8 @@ builder.Services.Configure<IdentityOptions>(options =>
 	//SignIn settings
 	options.SignIn.RequireConfirmedEmail = false;
 	options.SignIn.RequireConfirmedAccount = false;
+
+	RecurringJob.AddOrUpdate<ScheduleService>("bookrooms", x => x.CreateScheduledBookings(), Cron.Daily(7, 59));
 });
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -55,13 +59,12 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 
-
 var app = builder.Build();
 app.UseHangfireDashboard();
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<LibCalContext>();
-    DbInitializer.Initialize(context);
+	var context = scope.ServiceProvider.GetRequiredService<LibCalContext>();
+	DbInitializer.Initialize(context);
 }
 
 // Configure the HTTP request pipeline.

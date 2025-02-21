@@ -7,24 +7,44 @@ using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
+using System.ComponentModel;
+using System.Collections.Specialized;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Hangfire;
 
 
 namespace LibCalBooker.LibCal
 {
-	public class LibCalSession
+	public static class LibCalSession
 	{
-		private readonly string libCalUrl;
-		public LibCalSession(string libCalUrl)
+
+		public static async Task<List<Booking>> BookScheduledRooms(LibCalContext db)
 		{
-			this.libCalUrl = libCalUrl;
+			var availableRooms = await GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(2));
+			List<Booking> completedBookings = new();
+			foreach (var room in availableRooms)
+			{
+				var bookings = db.Bookings.Where(b => b.RoomID == room.roomId);
+				if (bookings.Count() > 0)
+				{
+					foreach (var booking in bookings)
+					{
+						if (booking.BookingDate+booking.BookingTime.TimeOfDay == room.startTime)
+						{
+							if (await BookRoom(room, booking.Booker))
+							{
+								db.Bookings.Remove(booking);
+								await db.SaveChangesAsync();
+								completedBookings.Add(booking);
+							}
+						}
+					}
+				}
+			}
+			return completedBookings;
 		}
 
-		public void BookRoom(int roomId, DateTime startTime)
-		{
-
-		}
-
-		public async Task<List<TimeSlot>> GetAvailableRooms(DateTime startDate, DateTime endDate)
+		public static async Task<List<TimeSlot>> GetAvailableRooms(DateTime startDate, DateTime endDate)
 		{
 
 			// Date format for the API
@@ -74,7 +94,7 @@ namespace LibCalBooker.LibCal
 		// Booking a Room. 
 		// TODO : implement the final booking request by integrating the user information.
 		// Refactor.
-		public async Task<bool> BookRoom(TimeSlot timeSlot, ApplicationUser user)
+		public static async Task<bool> BookRoom(TimeSlot timeSlot, ApplicationUser user)
         {
             // First Post
             using HttpClient client = new();
@@ -192,7 +212,6 @@ namespace LibCalBooker.LibCal
             string responseBody = await ProcessResponse(response);
 
             return (response, responseBody);
-
         }
 
         private static int GetSessionId(string htmlString)
