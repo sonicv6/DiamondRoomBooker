@@ -14,6 +14,7 @@ namespace LibCalBooker
 
 		public async Task CreateScheduledBookings()
 		{
+			Console.WriteLine("Attempting to book scheduled rooms");
 			int attempts = 0;
 			while (attempts++ < 8)
 			{

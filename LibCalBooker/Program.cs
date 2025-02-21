@@ -45,6 +45,8 @@ builder.Services.Configure<IdentityOptions>(options =>
 	options.SignIn.RequireConfirmedAccount = false;
 
 	RecurringJob.AddOrUpdate<ScheduleService>("bookrooms", x => x.CreateScheduledBookings(), Cron.Daily(7, 59));
+	RecurringJob.AddOrUpdate<ScheduleService>("bookrooms15m", x => x.CreateScheduledBookings(),"*/15 * * * *");
+	
 });
 
 builder.Services.ConfigureApplicationCookie(options =>

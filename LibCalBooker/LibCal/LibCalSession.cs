@@ -22,23 +22,32 @@ namespace LibCalBooker.LibCal
 		{
 			var availableRooms = await GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(2));
 			List<Booking> completedBookings = new();
+			var bookings = db.Bookings.ToList();
+			
 			foreach (var room in availableRooms)
 			{
-				var bookings = db.Bookings.Where(b => b.RoomID == room.roomId);
 				if (bookings.Count() > 0)
 				{
+					Booking bookingMatch = null;
 					foreach (var booking in bookings)
 					{
 						if (booking.BookingDate+booking.BookingTime.TimeOfDay == room.startTime)
 						{
+							Console.WriteLine("INFO: Attempted to book " + booking);
+							bookingMatch = booking;
 							if (await BookRoom(room, booking.Booker))
 							{
 								db.Bookings.Remove(booking);
 								await db.SaveChangesAsync();
 								completedBookings.Add(booking);
+								Console.WriteLine("Booking Successful");
+								break;
 							}
+							Console.WriteLine("Booking Failed");
 						}
 					}
+
+					if (bookingMatch != null) bookings.Remove(bookingMatch);
 				}
 			}
 			return completedBookings;
