@@ -34,22 +34,22 @@ namespace LibCalBooker.Controllers
 
         // GET: Rooms
         [Authorize]
-		//public async Task<IActionResult> Rooms()
-		//{
-  //          List<TimeSlot> times = await LibCalSession.GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(1));
-  //          for (int i = 0; i < times.Count; i++)
-  //          {
-  //              var room = _context.Rooms.Find(times[i].roomId);
-  //              if (room != null)
-  //              {
-  //                  var timeSlot = times[i];
-  //                  timeSlot.diamondName = room.Name;
-  //                  times[i] = timeSlot;
-  //              }
-  //          }
-  //          ViewData["Times"] = times;
-  //          return View();
-  //      }
+        public async Task<IActionResult> Rooms()
+        {
+            List<TimeSlot> times = await LibCalSession.GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(3));
+            for (int i = 0; i < times.Count; i++)
+            {
+                var room = _context.Rooms.Find(times[i].roomId);
+                if (room != null)
+                {
+                    var timeSlot = times[i];
+                    timeSlot.diamondName = room.Name;
+                    times[i] = timeSlot;
+                }
+            }
+            ViewData["Times"] = times;
+            return View();
+        }
 
         [HttpPost]
         [Authorize]

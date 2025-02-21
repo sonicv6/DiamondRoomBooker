@@ -20,7 +20,7 @@ namespace LibCalBooker.LibCal
 
 		public static async Task<List<Booking>> BookScheduledRooms(LibCalContext db)
 		{
-			var availableRooms = await GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(2));
+			var availableRooms = await GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(3));
 			List<Booking> completedBookings = new();
 			var bookings = db.Bookings.ToList();
 			

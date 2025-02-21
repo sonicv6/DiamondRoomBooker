@@ -404,3 +404,7 @@ FodyWeavers.xsd
 /LibCalBooker/LibCalBooker.db
 /LibCalBooker/LibCalBooker.db-shm
 /LibCalBooker/LibCalBooker.db-wal
+/LibCalBooker/LibCalBooker.db
+/LibCalBooker/LibCalBooker.csproj.user
+/LibCalBooker/LibCalBooker.db-shm
+/LibCalBooker/LibCalBooker.db-wal
