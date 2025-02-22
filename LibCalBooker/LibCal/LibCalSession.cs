@@ -32,7 +32,7 @@ public static class LibCalSession
 				Booking bookingMatch = null;
 				foreach (var booking in bookings)
 				{
-					if (booking.BookingDate + booking.BookingTime.TimeOfDay == room.startTime)
+					if (booking.BookingDate + booking.BookingTime.TimeOfDay == room.startTime && booking.RoomID == room.roomId)
 					{
 						Console.WriteLine("INFO: Attempted to book " + booking);
 						bookingMatch = booking;
