@@ -53,10 +53,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
 	// Cookie settings
 	options.Cookie.HttpOnly = true;
-	options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+	options.ExpireTimeSpan = TimeSpan.FromDays(30);
 
-	options.LoginPath = "/Users/Login";
-	options.AccessDeniedPath = "/Users/AccessDenied";
+	options.LoginPath = "/Identity/Account/Login";
+	options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 	options.SlidingExpiration = true;
 });
 
@@ -86,7 +86,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
+        pattern: "{controller=Bookings}/{action=Index}/{id?}")
     .WithStaticAssets();
 app.MapRazorPages();
 

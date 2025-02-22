@@ -408,3 +408,8 @@ FodyWeavers.xsd
 /LibCalBooker/LibCalBooker.csproj.user
 /LibCalBooker/LibCalBooker.db-shm
 /LibCalBooker/LibCalBooker.db-wal
+/LibCalBooker/Data Source=LibCalBooker.db-shm
+/LibCalBooker/Data Source=LibCalBooker.db-wal
+/LibCalBooker/Hangfire.db
+/LibCalBooker/Hangfire.db-shm
+/LibCalBooker/Hangfire.db-wal

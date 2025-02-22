@@ -56,22 +56,37 @@ namespace LibCalBooker.Areas.Identity.Pages.Account.Manage
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
-            [Phone]
-            [Display(Name = "Phone number")]
-            public string PhoneNumber { get; set; }
-        }
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+
+			[Display(Name = "Last Name")]
+			public string LastName { get; set; }
+
+            [Display(Name = "Secondary Email")]
+            [EmailAddress]
+            public string SecondaryEmail { get; set; }
+
+			[Display(Name = "UCard Number")]
+			public int UCardNumber { get; set; }
+
+			[Display(Name = "Registration Number")]
+			public int RegistrationNumber { get; set; }
+		}
 
         private async Task LoadAsync(ApplicationUser user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
 
             Username = userName;
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
-            };
+                FirstName = user.FirstName,
+				LastName = user.LastName,
+				SecondaryEmail = user.SecondaryEmail,
+				UCardNumber = user.UCardNumber,
+				RegistrationNumber = user.RegistrationNumber
+			};
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -100,18 +115,15 @@ namespace LibCalBooker.Areas.Identity.Pages.Account.Manage
                 return Page();
             }
 
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input.PhoneNumber != phoneNumber)
-            {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
-                {
-                    StatusMessage = "Unexpected error when trying to set phone number.";
-                    return RedirectToPage();
-                }
-            }
+            user.FirstName = Input.FirstName;
+            user.LastName = Input.LastName;
+            user.SecondaryEmail = Input.SecondaryEmail;
+			user.UCardNumber = Input.UCardNumber;
+			user.RegistrationNumber = Input.RegistrationNumber;
 
-            await _signInManager.RefreshSignInAsync(user);
+			await _userManager.UpdateAsync(user);
+
+			await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Your profile has been updated";
             return RedirectToPage();
         }
