@@ -104,6 +104,7 @@ namespace LibCalBooker.Controllers
             {
                 _context.Add(booking);
                 await _context.SaveChangesAsync();
+                await LibCalSession.BookScheduledRooms(_context);
                 return RedirectToAction(nameof(Index));
             }
             else
