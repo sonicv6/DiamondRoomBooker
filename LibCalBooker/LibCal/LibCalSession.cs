@@ -120,6 +120,14 @@ public static class LibCalSession
 				Console.WriteLine("Booking request successful.");
 				return true;
 			}
+			Console.WriteLine(bookingResponse.Content.ReadAsStringAsync().Result);
+			if ((await bookingResponse.Content.ReadAsStringAsync()).Contains(
+				    "Sorry, this exceeds the 240 minute per day limit in this category."))
+			{
+				int atPosition = user.Email.IndexOf("@");
+				user.Email = user.Email.Insert(atPosition, "+");
+				await BookRoom(timeSlot, user);
+			}
 			Console.WriteLine("booking request failed.");
 
 		}
