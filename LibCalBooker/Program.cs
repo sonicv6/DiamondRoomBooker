@@ -8,12 +8,17 @@ using Microsoft.Extensions.Hosting;
 using LibCalBooker.Models;
 using LibCalBooker.LibCal;
 using LibCalBooker;
-
+using NLog;
+using NLog.Web;
+//var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+//logger.Debug("init main");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<LibCalContext>(options => options.UseLazyLoadingProxies().UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+//builder.Logging.ClearProviders();
+//builder.Host.UseNLog();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddRoles<IdentityRole>()
 	.AddEntityFrameworkStores<LibCalContext>();
@@ -44,8 +49,8 @@ builder.Services.Configure<IdentityOptions>(options =>
 	options.SignIn.RequireConfirmedEmail = false;
 	options.SignIn.RequireConfirmedAccount = false;
 
-	RecurringJob.AddOrUpdate<ScheduleService>("bookrooms", x => x.CreateScheduledBookings(), Cron.Daily(7, 59));
-	RecurringJob.AddOrUpdate<ScheduleService>("bookrooms15m", x => x.CreateScheduledBookings(),"*/15 * * * *");
+	RecurringJob.AddOrUpdate<ScheduleService>("bookrooms", x => x.CreateScheduledBookings(12, 15), Cron.Daily(7, 59));
+	RecurringJob.AddOrUpdate<ScheduleService>("bookrooms15m", x => x.CreateScheduledBookings(2, 30),"*/15 * * * *");
 	
 });
 

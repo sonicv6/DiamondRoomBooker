@@ -88,6 +88,7 @@ namespace LibCalBooker.Controllers
 			}
             ViewData["Times"] = new SelectList(times);
 			ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
+            ViewData["intervals"] = new SelectList(new string[] { "Daily", "Weekly" });
             return View();
         }
 
@@ -97,7 +98,7 @@ namespace LibCalBooker.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("Id,BookingDate,BookingTime,RoomID")] Booking booking)
+        public async Task<IActionResult> Create([Bind("Id,BookingDate,BookingTime,RoomID,Interval,Recurring")] Booking booking)
         {
 			booking.BookerID = (await _userManager.GetUserAsync(User)).Id;
 			if (ModelState.IsValid || ModelState.ErrorCount == 1)
@@ -121,6 +122,7 @@ namespace LibCalBooker.Controllers
 			}
 			ViewData["Times"] = new SelectList(times);
 			ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name", booking.RoomID);
+            ViewData["Intervals"] = new SelectList(new string[] { "Daily", "Weekly" });
             return View(booking);
         }
 

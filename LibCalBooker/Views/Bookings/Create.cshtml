@@ -27,6 +27,14 @@
                 <span asp-validation-for="BookingTime" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <label asp-for="Recurring" class="control-label">Recurring</label>
+                <input asp-for="Recurring" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Interval" class="control-label">Recurring interval</label>
+                <select asp-for="Interval" class="form-control" asp-items="ViewBag.Intervals"></select>
+            </div>
+            <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>

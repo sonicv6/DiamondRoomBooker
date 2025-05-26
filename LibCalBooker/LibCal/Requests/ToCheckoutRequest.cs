@@ -53,9 +53,10 @@ namespace LibCalBooker.LibCal.Requests
             this.parameters["bookings[0][seat_id]"] = seat_id.ToString();
             this.parameters["bookings[0][gid]"] = gid.ToString();
             this.parameters["bookings[0][lid]"] = lid.ToString();
-            this.parameters["bookings[0][start]"] = start.ToString();
-            this.parameters["bookings[0][end]"] = end.ToString();
+            this.parameters["bookings[0][start]"] = start.ToString("yyyy-MM-dd HH-mm");
+            this.parameters["bookings[0][end]"] = end.ToString("yyyy-MM-dd HH-mm");
             this.parameters["bookings[0][checksum]"] = checksum;
+            this.parameters["method"] = 13.ToString();
 
         }
         public HttpRequestMessage GetHttpRequest()

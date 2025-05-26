@@ -46,6 +46,33 @@ public static class LibCalSession
 						}
 						Console.WriteLine("Booking Failed");
 					}
+					if (booking.Recurring)
+					{
+						if (booking.Interval == "Daily" && booking.BookingTime == room.startTime && room.roomId == booking.RoomID)
+						{
+                            Console.WriteLine("INFO: Attempted to book " + booking);
+                            bookingMatch = booking;
+                            if (await BookRoom(room, booking.Booker))
+                            {
+                                completedBookings.Add(booking);
+                                Console.WriteLine("Booking Successful");
+                                break;
+                            }
+                            Console.WriteLine("Booking Failed");
+                        }
+						if (booking.Interval == "Weekly" && booking.BookingTime == room.startTime && booking.BookingDate.DayOfWeek == room.startTime.DayOfWeek && booking.RoomID == room.roomId)
+						{
+                            Console.WriteLine("INFO: Attempted to book " + booking);
+                            bookingMatch = booking;
+                            if (await BookRoom(room, booking.Booker))
+                            {
+                                completedBookings.Add(booking);
+                                Console.WriteLine("Booking Successful");
+                                break;
+                            }
+                            Console.WriteLine("Booking Failed");
+                        }
+					}
 				}
 
 				if (bookingMatch != null) bookings.Remove(bookingMatch);
@@ -105,8 +132,12 @@ public static class LibCalSession
 		{
 			var sessionId = GetSessionId(await DecodeResponseBody(basketResponse));
 
-			Console.WriteLine("Failed to obtain Session ID");
-			if (sessionId == -1) return false;
+			if (sessionId == -1)
+			{
+				
+                Console.WriteLine("Failed to obtain Session ID");
+                return false;
+			}
 
 			Console.WriteLine($"Successfully Found Session ID: {sessionId}.");
 
@@ -121,19 +152,29 @@ public static class LibCalSession
 				return true;
 			}
 			Console.WriteLine(bookingResponse.Content.ReadAsStringAsync().Result);
-			if ((await bookingResponse.Content.ReadAsStringAsync()).Contains(
+			while ((await bookingResponse.Content.ReadAsStringAsync()).Contains(
 				    "Sorry, this exceeds the 240 minute per day limit in this category."))
 			{
 				int atPosition = user.Email.IndexOf("@");
 				user.Email = user.Email.Insert(atPosition, "+");
-				await BookRoom(timeSlot, user);
-			}
-			Console.WriteLine("booking request failed.");
+                bookRoomRequest = new BookRoomRequest(sessionId, bookingData, user).GetHttpRequest();
+                bookingResponse = await client.SendAsync(bookRoomRequest);
 
-		}
+                if (bookingResponse.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Booking request successful.");
+                    return true;
+                }
+			}
+
+			Console.WriteLine("booking request failed.");
+            Console.WriteLine("Status Code \n" + bookingResponse.StatusCode + "\n Content" + await bookingResponse.Content.ReadAsStringAsync());
+
+        }
 		else
 		{
 			Console.WriteLine("Basket attempt failed");
+			Console.WriteLine("Status Code \n" + basketResponse.StatusCode + "\n Content" + await basketResponse.Content.ReadAsStringAsync());
 		}
 		return false;
 	}

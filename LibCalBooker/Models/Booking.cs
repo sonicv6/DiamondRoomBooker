@@ -12,6 +12,10 @@ namespace LibCalBooker.Models
 		[DataType(DataType.Time)]
 		public DateTime BookingTime { get; set; }
 
+		public bool Recurring { get; set; }
+
+		public string Interval { get; set; }
+
 		[ForeignKey("RoomID")]
 		public int RoomID { get; set; }
 		public virtual Room? Room { get; set; }
