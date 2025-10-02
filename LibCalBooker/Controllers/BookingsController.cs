@@ -88,7 +88,23 @@ namespace LibCalBooker.Controllers
 			}
             ViewData["Times"] = new SelectList(times);
 			ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
-            ViewData["intervals"] = new SelectList(new string[] { "Daily", "Weekly" });
+            return View();
+        }
+
+        // GET: Bookings/CreateRecurring
+        [Authorize]
+        public IActionResult CreateRecurring()
+        {
+            TimeSpan start = new TimeSpan(7, 0, 0);
+            List<string> times = new List<string>();
+            while (start != TimeSpan.FromHours(21) + TimeSpan.FromMinutes(45))
+            {
+                times.Add(start.ToString());
+                start = start.Add(new TimeSpan(0, 15, 0));
+            }
+            ViewData["Times"] = new SelectList(times);
+            ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
+            ViewData["Intervals"] = new SelectList(new string[] { "Daily", "Weekly" });
             return View();
         }
 
@@ -98,7 +114,7 @@ namespace LibCalBooker.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("Id,BookingDate,BookingTime,RoomID,Interval,Recurring")] Booking booking)
+        public async Task<IActionResult> Create([Bind("Id,BookingDate,BookingTime,RoomID")] Booking booking)
         {
 			booking.BookerID = (await _userManager.GetUserAsync(User)).Id;
 			if (ModelState.IsValid || ModelState.ErrorCount == 1)
@@ -122,14 +138,64 @@ namespace LibCalBooker.Controllers
 			}
 			ViewData["Times"] = new SelectList(times);
 			ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name", booking.RoomID);
-            ViewData["Intervals"] = new SelectList(new string[] { "Daily", "Weekly" });
             return View(booking);
         }
 
+        // POST: Bookings/CreateRecurring
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> CreateRecurring([Bind("Id,StartDate,EndDate,BookingTime,RoomID,Interval")] RecurringBooking recurringBooking)
+        {
+            recurringBooking.BookerID = (await _userManager.GetUserAsync(User)).Id;
+            if (ModelState.IsValid || ModelState.ErrorCount == 1)
+            {
+                DateTime current = recurringBooking.StartDate;
+                while (current <= recurringBooking.EndDate)
+                {
+                    Booking booking = new Booking()
+                    {
+                        BookingDate = current,
+                        BookingTime = recurringBooking.BookingTime,
+                        RoomID = recurringBooking.RoomID,
+                        BookerID = recurringBooking.BookerID
+                    };
+                    _context.Add(booking);
+                    await _context.SaveChangesAsync();
+                    await LibCalSession.BookScheduledRooms(_context);
+                    if (recurringBooking.Interval == "Daily")
+                    {
+                        current = current.AddDays(1);
+                    }
+                    else if (recurringBooking.Interval == "Weekly")
+                    {
+                        current = current.AddDays(7);
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            else
+            {
+                var balls = ModelState.ErrorCount;
+            }
+            TimeSpan start = new TimeSpan(7, 0, 0);
+            List<string> times = new();
 
+            while (start.Hours < 21 && start.Minutes < 45)
+            {
+                times.Add(start.ToString());
+                start = start.Add(new TimeSpan(0, 15, 0));
+            }
+            ViewData["Times"] = new SelectList(times);
+            ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
+            ViewData["Intervals"] = new SelectList(new string[] { "Daily", "Weekly" });
+            return View();
+        }
 
         // GET: Bookings/Delete/5
-        [Authorize]
+            [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

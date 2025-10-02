@@ -46,33 +46,6 @@ public static class LibCalSession
 						}
 						Console.WriteLine("Booking Failed");
 					}
-					if (booking.Recurring)
-					{
-						if (booking.Interval == "Daily" && booking.BookingTime == room.startTime && room.roomId == booking.RoomID)
-						{
-                            Console.WriteLine("INFO: Attempted to book " + booking);
-                            bookingMatch = booking;
-                            if (await BookRoom(room, booking.Booker))
-                            {
-                                completedBookings.Add(booking);
-                                Console.WriteLine("Booking Successful");
-                                break;
-                            }
-                            Console.WriteLine("Booking Failed");
-                        }
-						if (booking.Interval == "Weekly" && booking.BookingTime == room.startTime && booking.BookingDate.DayOfWeek == room.startTime.DayOfWeek && booking.RoomID == room.roomId)
-						{
-                            Console.WriteLine("INFO: Attempted to book " + booking);
-                            bookingMatch = booking;
-                            if (await BookRoom(room, booking.Booker))
-                            {
-                                completedBookings.Add(booking);
-                                Console.WriteLine("Booking Successful");
-                                break;
-                            }
-                            Console.WriteLine("Booking Failed");
-                        }
-					}
 				}
 
 				if (bookingMatch != null) bookings.Remove(bookingMatch);

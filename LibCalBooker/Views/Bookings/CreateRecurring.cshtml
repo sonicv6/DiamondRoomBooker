@@ -1,7 +1,7 @@
-﻿@model LibCalBooker.Models.Booking
+@model LibCalBooker.Models.RecurringBooking
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Recurring";
 }
 
 <h1>Create</h1>
@@ -10,21 +10,30 @@
 <hr />
 <div class="row justify-content-center">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="CreateRecurring">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="RoomID" class="control-label">Room</label>
                 <select asp-for="RoomID" class ="form-control" asp-items="ViewBag.RoomId"></select>
             </div>
             <div class="form-group">
-                <label asp-for="BookingDate" class="control-label">Date</label>
-                <input asp-for="BookingDate" class="form-control" />
-                <span asp-validation-for="BookingDate" class="text-danger"></span>
+                <label asp-for="StartDate" class="control-label">Start Date</label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndDate" class="control-label">End Date</label>
+                <input asp-for="EndDate" class="form-control" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="BookingTime" class="control-label">Booking Time</label>
                 <select asp-for="BookingTime" class ="form-control" asp-items="ViewBag.Times"></select>
                 <span asp-validation-for="BookingTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Interval" class="control-label">Recurring interval</label>
+                <select asp-for="Interval" class="form-control" asp-items="ViewBag.Intervals"></select>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

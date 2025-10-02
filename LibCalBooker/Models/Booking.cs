@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.AspNetCore.Identity;
 
 namespace LibCalBooker.Models
 {
@@ -12,10 +11,6 @@ namespace LibCalBooker.Models
 		[DataType(DataType.Time)]
 		public DateTime BookingTime { get; set; }
 
-		public bool Recurring { get; set; }
-
-		public string Interval { get; set; }
-
 		[ForeignKey("RoomID")]
 		public int RoomID { get; set; }
 		public virtual Room? Room { get; set; }
@@ -26,7 +21,7 @@ namespace LibCalBooker.Models
 
 		public override string ToString()
 		{
-			return $"Booking {Id} for room {Room?.Name} at time {BookingTime.ToShortTimeString()} on date {BookingDate.ToShortDateString()} Booked by {Booker.Email}";
+			return $"Booking {Id} for room {Room?.Name} at time {BookingTime} on date {BookingDate} Booked by {Booker.Email}";
 		}
 	}
 }

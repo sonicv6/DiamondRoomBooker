@@ -3,7 +3,6 @@ using System;
 using LibCalBooker.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,11 +10,9 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibCalBooker.Migrations
 {
     [DbContext(typeof(LibCalContext))]
-    [Migration("20250521141130_AddRecurringFieldtoBooking")]
-    partial class AddRecurringFieldtoBooking
+    partial class LibCalContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,13 +36,6 @@ namespace LibCalBooker.Migrations
 
                     b.Property<DateTime>("BookingTime")
                         .HasColumnType("TEXT");
-
-                    b.Property<string>("Interval")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("Recurring")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("RoomID")
                         .HasColumnType("INTEGER");
