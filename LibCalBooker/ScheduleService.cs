@@ -19,8 +19,8 @@ namespace LibCalBooker
 			int attempts = 0;
 			while (attempts++ < numTries)
 			{
-				if (!ctx.Bookings.Any()) continue;
-				await LibCalSession.BookScheduledRooms(ctx);
+				if (ctx.Bookings.Any()) await LibCalSession.BookScheduledRooms(ctx);
+				if (ctx.RecurringBookings.Any()) await LibCalSession.BookScheduledRecurringRooms(ctx);
 				await Task.Delay(delay * 1000);
 			}
 		}

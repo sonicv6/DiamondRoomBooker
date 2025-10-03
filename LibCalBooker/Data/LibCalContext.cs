@@ -11,6 +11,7 @@ namespace LibCalBooker.Data
 		}
 
 		public DbSet<Booking> Bookings { get; set; }
+		public DbSet<RecurringBooking> RecurringBookings { get; set; }
 		public DbSet<Room> Rooms { get; set; }
 
 	}

@@ -54,6 +54,51 @@ public static class LibCalSession
 		return completedBookings;
 	}
 
+	public static async Task<List<RecurringBooking>> BookScheduledRecurringRooms(LibCalContext db)
+	{
+		var availableRooms = await GetAvailableRooms(DateTime.UtcNow, DateTime.UtcNow.AddDays(3));
+		List<RecurringBooking> completedBookings = new();
+		var recurringBookings = db.RecurringBookings.ToList();
+		foreach (var room in availableRooms)
+		{
+			RecurringBooking bookingMatch = null;
+			foreach (var booking in recurringBookings)
+			{
+				// For the intervals of daily and weekly, test if the available room matches the booking date.
+				if (room.roomId != booking.RoomID) continue;
+				switch (booking.Interval)
+				{
+					case "Daily":
+						if (room.startTime.TimeOfDay == booking.BookingTime.TimeOfDay)
+						{
+							bookingMatch = booking;
+						}
+						break;
+					case "Weekly":
+						if (room.startTime.TimeOfDay == booking.BookingTime.TimeOfDay && room.startTime.DayOfWeek == booking.StartDate.DayOfWeek)
+						{
+							bookingMatch = booking;
+						}
+						break;
+				}
+			}
+			if (bookingMatch != null)
+			{
+				Console.WriteLine("INFO: Attempted to book " + bookingMatch);
+				if (await BookRoom(room, bookingMatch.Booker))
+				{
+					completedBookings.Add(bookingMatch);
+					Console.WriteLine("Booking Successful");
+				}
+				else
+				{
+					Console.WriteLine("Booking Failed");
+				}
+			}
+		}
+		return completedBookings;
+	}
+
 	public static async Task<List<TimeSlot>> GetAvailableRooms(DateTime startDate, DateTime endDate)
 	{
 

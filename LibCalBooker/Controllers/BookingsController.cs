@@ -17,7 +17,7 @@ namespace LibCalBooker.Controllers
     public class BookingsController : Controller
     {
         private readonly LibCalContext _context;
-        
+
         private UserManager<ApplicationUser> _userManager;
 
 
@@ -57,20 +57,34 @@ namespace LibCalBooker.Controllers
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
             await LibCalSession.BookRoom(timeSlot, user);
-			return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index));
         }
 
-		// GET: Bookings
-		[Authorize]
+        // GET: Index
+        [Authorize]
         public async Task<IActionResult> Index()
+        {
+            return View();
+        }
+
+        // GET: Bookings
+        [Authorize]
+        public async Task<PartialViewResult> Bookings()
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
             if (user == null)
-			{
-				return RedirectToAction("Identity/Account/Logout");
-			}
-			var bookings = _context.Bookings.Where(b => b.BookerID == user.Id);
-            return View(await bookings.ToListAsync());
+            {
+                return PartialView("Bookings", new List<Booking>());
+            }
+            var bookings = _context.Bookings.Where(b => b.BookerID == user.Id);
+            return PartialView("Bookings", await bookings.ToListAsync());
+        }
+
+        public async Task<PartialViewResult> RecurringBookings()
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            var bookings = _context.RecurringBookings.Include(b => b.Room);
+            return PartialView("RecurringBookings", await bookings.ToListAsync());
         }
 
 
@@ -81,13 +95,13 @@ namespace LibCalBooker.Controllers
             TimeSpan start = new TimeSpan(7, 0, 0);
             List<string> times = new List<string>();
 
-			while (start != TimeSpan.FromHours(21)+TimeSpan.FromMinutes(45))
+            while (start != TimeSpan.FromHours(21) + TimeSpan.FromMinutes(45))
             {
                 times.Add(start.ToString());
-				start = start.Add(new TimeSpan(0, 15, 0));
-			}
+                start = start.Add(new TimeSpan(0, 15, 0));
+            }
             ViewData["Times"] = new SelectList(times);
-			ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
+            ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name");
             return View();
         }
 
@@ -116,8 +130,8 @@ namespace LibCalBooker.Controllers
         [Authorize]
         public async Task<IActionResult> Create([Bind("Id,BookingDate,BookingTime,RoomID")] Booking booking)
         {
-			booking.BookerID = (await _userManager.GetUserAsync(User)).Id;
-			if (ModelState.IsValid || ModelState.ErrorCount == 1)
+            booking.BookerID = (await _userManager.GetUserAsync(User)).Id;
+            if (ModelState.IsValid || ModelState.ErrorCount == 1)
             {
                 _context.Add(booking);
                 await _context.SaveChangesAsync();
@@ -128,16 +142,16 @@ namespace LibCalBooker.Controllers
             {
                 var balls = ModelState.ErrorCount;
             }
-			TimeSpan start = new TimeSpan(7, 0, 0);
-			List<string> times = new();
+            TimeSpan start = new TimeSpan(7, 0, 0);
+            List<string> times = new();
 
-			while (start.Hours < 21 && start.Minutes < 45)
-			{
-				times.Add(start.ToString());
-				start = start.Add(new TimeSpan(0, 15, 0));
-			}
-			ViewData["Times"] = new SelectList(times);
-			ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name", booking.RoomID);
+            while (start.Hours < 21 && start.Minutes < 45)
+            {
+                times.Add(start.ToString());
+                start = start.Add(new TimeSpan(0, 15, 0));
+            }
+            ViewData["Times"] = new SelectList(times);
+            ViewData["RoomId"] = new SelectList(_context.Rooms, "Id", "Name", booking.RoomID);
             return View(booking);
         }
 
@@ -153,27 +167,18 @@ namespace LibCalBooker.Controllers
             if (ModelState.IsValid || ModelState.ErrorCount == 1)
             {
                 DateTime current = recurringBooking.StartDate;
-                while (current <= recurringBooking.EndDate)
+                RecurringBooking booking = new RecurringBooking()
                 {
-                    Booking booking = new Booking()
-                    {
-                        BookingDate = current,
-                        BookingTime = recurringBooking.BookingTime,
-                        RoomID = recurringBooking.RoomID,
-                        BookerID = recurringBooking.BookerID
-                    };
-                    _context.Add(booking);
-                    await _context.SaveChangesAsync();
-                    await LibCalSession.BookScheduledRooms(_context);
-                    if (recurringBooking.Interval == "Daily")
-                    {
-                        current = current.AddDays(1);
-                    }
-                    else if (recurringBooking.Interval == "Weekly")
-                    {
-                        current = current.AddDays(7);
-                    }
-                }
+                    BookerID = recurringBooking.BookerID,
+                    RoomID = recurringBooking.RoomID,
+                    StartDate = current,
+                    EndDate = recurringBooking.EndDate,
+                    BookingTime = recurringBooking.BookingTime,
+                    Interval = recurringBooking.Interval
+                };
+                _context.Add(booking);
+                await _context.SaveChangesAsync();
+                await LibCalSession.BookScheduledRecurringRooms(_context);
                 return RedirectToAction(nameof(Index));
             }
             else
@@ -195,7 +200,7 @@ namespace LibCalBooker.Controllers
         }
 
         // GET: Bookings/Delete/5
-            [Authorize]
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -214,6 +219,23 @@ namespace LibCalBooker.Controllers
             return View(booking);
         }
 
+        [Authorize]
+        public async Task<IActionResult> DeleteRecurring(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var booking = await _context.RecurringBookings
+                .Include(b => b.Room)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (booking == null)
+            {
+                return NotFound();
+            }
+            return View(booking);
+        }
+
         // POST: Bookings/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -222,14 +244,34 @@ namespace LibCalBooker.Controllers
         {
             var booking = await _context.Bookings.FindAsync(id);
             if (booking.BookerID != (await _userManager.GetUserAsync(User)).Id)
-			{
-				return Unauthorized();
-			}
-			if (booking != null)
+            {
+                return Unauthorized();
+            }
+            if (booking != null)
             {
                 _context.Bookings.Remove(booking);
             }
 
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: Bookings/DeleteRecurring/5
+        [HttpPost, ActionName("DeleteRecurring")]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> DeleteRecurringConfirmed(int id)
+        {
+            var booking = await _context.RecurringBookings.FindAsync(id);
+            if (booking.BookerID != (await _userManager.GetUserAsync(User)).Id
+                )
+            {
+                return Unauthorized();
+            }
+            if (booking != null)
+            {
+                _context.RecurringBookings.Remove(booking);
+            }
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
